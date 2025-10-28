@@ -25,6 +25,7 @@ jobs:
     # This is cleaner than using docker pull/run commands
     container:
       image: wolframresearch/wolframengine:latest
+      options: --user root
     
     # Restrict GITHUB_TOKEN permissions for security
     permissions:
