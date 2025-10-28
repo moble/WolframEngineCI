@@ -1,0 +1,105 @@
+name: Wigner D Matrix Generation Test
+
+# This workflow demonstrates running Wolfram Engine in Docker to generate
+# symbolic Wigner D matrices for quantum angular momentum calculations.
+# The generated matrices are uploaded as artifacts for verification.
+
+on:
+  # Run on pushes to main branch
+  push:
+    branches: [ main ]
+  
+  # Run on pull requests
+  pull_request:
+    branches: [ main ]
+  
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  generate-wigner-matrices:
+    name: Generate Wigner D Matrices
+    runs-on: ubuntu-latest
+    
+    # Run all steps inside the Wolfram Engine container
+    # This is cleaner than using docker pull/run commands
+    container:
+      image: wolframresearch/wolframengine:latest
+      options: --user root
+    
+    # Restrict GITHUB_TOKEN permissions for security
+    permissions:
+      contents: read
+    
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # Step 2: Generate Wigner D matrices with Wolfram Engine
+      # The wolframscript command is available since we're running in the container
+      - name: Generate Wigner D matrices with Wolfram Engine
+        run: |
+          # Execute the Wolfram Language script
+          wolframscript -username ${{ secrets.WOLFRAM_USER }} -password ${{ secrets.WOLFRAM_PASSWORD }}
+          wolframscript -f scripts/generate_wigner.wl
+          wolframscript -disconnect
+          
+          # Verify that output files were created
+          echo "Checking generated files..."
+          ls -lh wigner_*.json
+          
+          # Display summary information
+          echo "Matrix generation complete!"
+          cat wigner_summary.json
+      
+      # Step 3: Validate the generated JSON files
+      # This ensures the output is valid JSON that can be parsed
+      - name: Validate JSON output
+        run: |
+          echo "Validating JSON files..."
+          
+          # Use Python's json module to validate JSON syntax
+          python3 -c "import json; json.load(open('wigner_d_matrices.json'))" && \
+            echo "✓ wigner_d_matrices.json is valid JSON" || \
+            (echo "✗ wigner_d_matrices.json is invalid JSON" && exit 1)
+          
+          python3 -c "import json; json.load(open('wigner_summary.json'))" && \
+            echo "✓ wigner_summary.json is valid JSON" || \
+            (echo "✗ wigner_summary.json is invalid JSON" && exit 1)
+          
+          # Display file sizes
+          echo "Generated file sizes:"
+          du -h wigner_*.json
+      
+      # Step 4: Upload the generated matrices as workflow artifacts
+      # This allows verification and download of the results from the Actions tab
+      - name: Upload Wigner D matrices artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Artifact name that will appear in the Actions UI
+          name: wigner-d-matrices
+          
+          # Files to include in the artifact
+          path: |
+            wigner_d_matrices.json
+            wigner_summary.json
+          
+          # Retention period (in days) - adjust as needed
+          retention-days: 30
+          
+          # Fail if files are not found
+          if-no-files-found: error
+      
+      # Step 5: Display a sample of the generated matrices
+      # This provides immediate feedback in the workflow logs
+      - name: Display sample output
+        run: |
+          echo "Sample of generated Wigner D matrices:"
+          echo "========================================"
+          
+          # Show first few lines of the summary
+          head -50 wigner_summary.json
+          
+          echo ""
+          echo "Full output available in artifacts above ↑"

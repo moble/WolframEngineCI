@@ -1,0 +1,11 @@
+# Generated Wigner D matrix output files
+wigner_d_matrices.json
+wigner_summary.json
+
+# Wolfram Engine temporary files
+*.nb
+*.wl~
+
+# General temporary files
+*.tmp
+*.log
