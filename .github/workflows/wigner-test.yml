@@ -41,7 +41,10 @@ jobs:
         run: |
           # Execute the Wolfram Language script
           # No need for docker commands - we're already inside the container
-          wolframscript -f scripts/generate_wigner.wl
+          wolframscript \
+            -username "${{ secrets.WOLFRAM_USER }}" \
+            -password "${{ secrets.WOLFRAM_PASSWORD }}" \
+            -f scripts/generate_wigner.wl
           
           # Verify that output files were created
           echo "Checking generated files..."
