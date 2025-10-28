@@ -41,10 +41,9 @@ jobs:
       - name: Generate Wigner D matrices with Wolfram Engine
         run: |
           # Execute the Wolfram Language script
-          wolframscript \
-            -username "${{ secrets.WOLFRAM_USER }}" \
-            -password "${{ secrets.WOLFRAM_PASSWORD }}"
+          wolframscript -username ${{ secrets.WOLFRAM_USER }} -password ${{ secrets.WOLFRAM_PASSWORD }}
           wolframscript -f scripts/generate_wigner.wl
+          wolframscript -disconnect
           
           # Verify that output files were created
           echo "Checking generated files..."
