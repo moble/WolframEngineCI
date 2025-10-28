@@ -21,6 +21,10 @@ jobs:
     name: Generate Wigner D Matrices
     runs-on: ubuntu-latest
     
+    # Restrict GITHUB_TOKEN permissions for security
+    permissions:
+      contents: read
+    
     steps:
       # Step 1: Check out the repository code
       - name: Checkout repository
