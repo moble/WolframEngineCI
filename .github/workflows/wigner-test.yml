@@ -21,6 +21,11 @@ jobs:
     name: Generate Wigner D Matrices
     runs-on: ubuntu-latest
     
+    # Run all steps inside the Wolfram Engine container
+    # This is cleaner than using docker pull/run commands
+    container:
+      image: wolframresearch/wolframengine:latest
+    
     # Restrict GITHUB_TOKEN permissions for security
     permissions:
       contents: read
@@ -30,24 +35,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         
-      # Step 2: Run Wolfram Engine in Docker to generate matrices
-      # We use the official Wolfram Engine Community Edition Docker image
-      # which is free for non-production use
+      # Step 2: Generate Wigner D matrices with Wolfram Engine
+      # The wolframscript command is available since we're running in the container
       - name: Generate Wigner D matrices with Wolfram Engine
         run: |
-          # Pull the Wolfram Engine Docker image
-          # Using wolframresearch/wolframengine for the community edition
-          docker pull wolframresearch/wolframengine:latest
-          
-          # Run the Wolfram script inside the Docker container
-          # - Mount the current directory to /work in the container
-          # - Set working directory to /work
-          # - Execute the Wolfram Language script
-          docker run --rm \
-            -v "${PWD}:/work" \
-            -w /work \
-            wolframresearch/wolframengine:latest \
-            wolframscript -f scripts/generate_wigner.wl
+          # Execute the Wolfram Language script
+          # No need for docker commands - we're already inside the container
+          wolframscript -f scripts/generate_wigner.wl
           
           # Verify that output files were created
           echo "Checking generated files..."
